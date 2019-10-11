@@ -1,0 +1,5 @@
+cluster.name: ooo
+node.name: jake
+network.host: _site_
+discovery.seed_hosts:
+  - es01:9300

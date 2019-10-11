@@ -1,11 +1,46 @@
 version: '3.2'
 
 services:
+#  elasticsearch_master:
+#    build:
+#      context: elasticsearch/
+#    ports:
+#      - 9200:9200
+#      - 9300:9300
+#    environment:
+#      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+#    volumes:
+#      - type: bind
+#        source: ./elasticsearch/config/master.yml
+#        target: /usr/share/elasticsearch/config/elasticsearch.yml
+#        read_only: true
+#      - type: volume
+#        source: elasticsearch_master
+#        target: /usr/share/elasticsearch/data
+#    networks:
+#      - elk
+#  elasticsearch_slave:
+#    image: elasticsearch:7.1.1
+#    ## Deploy will only work in a Docker swarm:
+#    ## use: `docker stack deploy` instead of docker-compose
+#    # deploy:
+#    #  replicas: 2
+#    volumes:
+#        - type: bind
+#          source: ./elasticsearch/config/slave.yml
+#          target: /usr/share/elasticsearch/config/elasticsearch.yml
+#          read_only: true
+#        - type: volume
+#          source: elasticsearch_slave
+#          target: /usr/share/elasticsearch/data
+#    networks:
+#      - elk
+#    environment:
+#      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
   elasticsearch:
     build:
       context: elasticsearch/
-      args:
-        ELK_VERSION: $ELK_VERSION
     volumes:
       - type: bind
         source: ./elasticsearch/config/elasticsearch.yml
@@ -18,16 +53,13 @@ services:
       - "9200:9200"
       - "9300:9300"
     environment:
-      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
-      ELASTIC_PASSWORD: changeme
+      ES_JAVA_OPTS: "-Xmx512m -Xms512m"
     networks:
       - elk
 
   logstash:
     build:
       context: logstash/
-      args:
-        ELK_VERSION: $ELK_VERSION
     volumes:
       - type: bind
         source: ./logstash/config/logstash.yml
@@ -50,8 +82,6 @@ services:
   kibana:
     build:
       context: kibana/
-      args:
-        ELK_VERSION: $ELK_VERSION
     volumes:
       - type: bind
         source: ./kibana/config/kibana.yml
@@ -64,9 +94,46 @@ services:
     depends_on:
       - elasticsearch
 
+  metricbeat:
+    build:
+      context: metricbeat/
+    volumes:
+      - type: bind
+        source: /
+        target: /hostfs
+        read_only: true
+      - type: bind
+        source: ./metricbeat/config/metricbeat.yml
+        target: /usr/share/metricbeat/metricbeat.yml
+        read_only: true
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+
+  packetbeat:
+    build:
+      context: packetbeat/
+    volumes:
+      - type: bind
+        source: ./packetbeat/config/packetbeat.yml
+        target: /usr/share/packetbeat/packetbeat.yml
+        read_only: true
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+    cap_add:
+      - NET_ADMIN
+
+
 networks:
   elk:
     driver: bridge
+    # This to allow packetbeat to capture host traffic
+#    external: true
 
 volumes:
   elasticsearch:
+  # elasticsearch_master:
+  # elasticsearch_slave:
