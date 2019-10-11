@@ -99,6 +99,10 @@ services:
       context: metricbeat/
     volumes:
       - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+      - type: bind
         source: /
         target: /hostfs
         read_only: true
@@ -119,12 +123,14 @@ services:
         source: ./packetbeat/config/packetbeat.yml
         target: /usr/share/packetbeat/packetbeat.yml
         read_only: true
-    networks:
-      - elk
+#    networks:
+#      - elk
+    network_mode: "host"
     depends_on:
       - elasticsearch
     cap_add:
       - NET_ADMIN
+      - NET_RAW
 
 
 networks:

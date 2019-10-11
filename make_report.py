@@ -47,6 +47,7 @@ if __name__ == '__main__':
     logstash = Context('logstash')
     kibana = Context('kibana')
     metricbeat = Context('metricbeat')
+    packetbeat = Context('packetbeat')
     template = get_template()
     dockercompose = _read(DOCKER_COMPOSE_FILE)
     output = template.render(**locals())
