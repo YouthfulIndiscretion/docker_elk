@@ -97,6 +97,7 @@ services:
   metricbeat:
     build:
       context: metricbeat/
+    user: root
     volumes:
       - type: bind
         source: /var/run/docker.sock
